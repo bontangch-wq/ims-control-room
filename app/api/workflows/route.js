@@ -1,0 +1,3 @@
+import { db } from '@/lib/db'
+export async function GET(){ const sql=db(); return Response.json(await sql`select w.id,w.module,w.name,w.active,coalesce(json_agg(json_build_object('id',l.id,'level_no',l.level_no,'level_name',l.level_name,'required_role',l.required_role,'required_approvals',l.required_approvals) order by l.level_no) filter(where l.id is not null),'[]') levels from approval_workflows w left join approval_levels l on l.workflow_id=w.id group by w.id order by w.module,w.name`) }
+export async function POST(req){ const b=await req.json(); const sql=db(); const r=await sql`insert into approval_workflows(module,name) values(${b.module},${b.name}) returning *`; return Response.json(r[0],{status:201}) }
