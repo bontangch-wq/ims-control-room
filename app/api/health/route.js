@@ -1,5 +1,17 @@
+import { requireAccess } from '@/lib/auth/access'
 import { db } from '@/lib/db'
+
+const HEALTH_ROLES = ['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
+
 export async function GET() {
-  try { const sql=db(); const rows=await sql`select current_database() as database, now() as checked_at`; return Response.json({ok:true,provider:'Neon PostgreSQL',...rows[0]}) }
-  catch(e) { return Response.json({ok:false,provider:'Neon PostgreSQL',message:e.message},{status:503}) }
+  const access = await requireAccess(HEALTH_ROLES)
+  if (!access.ok) return access.response
+
+  try {
+    const sql = db()
+    await sql`select 1 as ok`
+    return Response.json({ ok:true, provider:'Neon PostgreSQL' })
+  } catch {
+    return Response.json({ ok:false, provider:'Neon PostgreSQL', message:'Database health check failed' }, { status:503 })
+  }
 }
