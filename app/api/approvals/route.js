@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { requireAccess } from '@/lib/auth/access'
 const ROLES=['Super Admin','IMS Admin','Auditor','Function Owner']
 async function notifyManagers(sql,recordId,type,message,excludeId){const users=await sql`select id from app_users where active=true and app_role in ('Super Admin','IMS Admin') and id<>${excludeId}`;for(const u of users)await sql`insert into notifications(user_id,record_id,type,message) values(${u.id},${recordId},${type},${message})`}
+async function notifyOwner(sql,recordId,ownerId,type,message,excludeId){if(ownerId&&String(ownerId)!==String(excludeId))await sql`insert into notifications(user_id,record_id,type,message) select id,${recordId},${type},${message} from app_users where id=${ownerId} and active=true`}
 
 export async function GET(req){
  const access=await requireAccess(ROLES); if(!access.ok)return access.response
@@ -35,18 +36,19 @@ export async function PATCH(req){
  if(!['Super Admin','IMS Admin'].includes(access.profile.app_role)&&access.profile.app_role!==pending.required_role)return Response.json({error:'Your role is not authorized for this approval level'},{status:403})
  if((await sql`select id from approval_decisions where approval_id=${pending.id} and approver_id=${access.profile.id}`).length)return Response.json({error:'You have already submitted a decision for this approval level'},{status:409})
  await sql`insert into approval_decisions(approval_id,approver_id,decision,comment) values(${pending.id},${access.profile.id},${b.decision},${comment})`
- const record=(await sql`select record_no,title,status,module from ims_records where id=${b.record_id}`)[0]
+ const record=(await sql`select record_no,title,status,module,owner_id from ims_records where id=${b.record_id}`)[0]
  if(b.decision==='Rejected'){
   await sql`update approvals set decision='Rejected',comment=${comment},approver_id=${access.profile.id},decided_at=now() where id=${pending.id}`; await sql`update ims_records set status='Open',updated_at=now() where id=${b.record_id}`
   if(record.module==='Document & Record Control')await sql`update controlled_documents set document_status='Draft',updated_at=now() where record_id=${b.record_id}`
   await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Open',${`Level ${pending.level_no} rejected: ${comment}`},${access.profile.id})`
-  await notifyManagers(sql,b.record_id,'APPROVAL_REJECTED',`${record.record_no} ditolak pada level ${pending.level_no} (${pending.level_name}). Keterangan: ${comment}`,access.profile.id)
+  const rejectedMessage=`${record.record_no} ditolak pada level ${pending.level_no} (${pending.level_name}). Keterangan: ${comment}`
+  await notifyManagers(sql,b.record_id,'APPROVAL_REJECTED',rejectedMessage,access.profile.id);await notifyOwner(sql,b.record_id,record.owner_id,'APPROVAL_REJECTED',rejectedMessage,access.profile.id)
  }else{
   const count=(await sql`select count(*)::int n from approval_decisions where approval_id=${pending.id} and decision='Approved'`)[0].n
   if(count>=pending.required_approvals){
    await sql`update approvals set decision='Approved',comment=${`Approval threshold completed (${count}/${pending.required_approvals})`},approver_id=${access.profile.id},decided_at=now() where id=${pending.id}`
    const next=(await sql`select level_no,required_role,required_approvals from approval_levels where workflow_id=${pending.workflow_id} and level_no>${pending.level_no} order by level_no limit 1`)[0]
-   if(next){await sql`insert into approvals(record_id,workflow_id,level_no,decision) values(${b.record_id},${pending.workflow_id},${next.level_no},'Pending')`;const targets=await sql`select id from app_users where active=true and app_role=${next.required_role}`;for(const u of targets)await sql`insert into notifications(user_id,record_id,type,message) values(${u.id},${b.record_id},'APPROVAL_REQUIRED',${`${record.record_no} requires ${next.required_approvals} approval(s) at level ${next.level_no}`})`}
+   if(next){await sql`insert into approvals(record_id,workflow_id,level_no,decision) values(${b.record_id},${pending.workflow_id},${next.level_no},'Pending')`;const targets=await sql`select id from app_users where active=true and app_role=${next.required_role}`;for(const u of targets)await sql`insert into notifications(user_id,record_id,type,message) values(${u.id},${b.record_id},'APPROVAL_REQUIRED',${`${record.record_no} requires ${next.required_approvals} approval(s) at level ${next.level_no}`})`;await notifyOwner(sql,b.record_id,record.owner_id,'APPROVAL_PROGRESS',`${record.record_no} telah menyelesaikan level ${pending.level_no} (${pending.level_name}) dan masuk ke level ${next.level_no}.`,access.profile.id)}
    else{
     await sql`update ims_records set status='Approved',updated_at=now() where id=${b.record_id}`
     let finalMessage=`${record.record_no} telah menyelesaikan seluruh level approval.`
@@ -56,7 +58,7 @@ export async function PATCH(req){
      if(doc?.supersedes_id){const old=(await sql`update controlled_documents set document_status='Obsolete',updated_at=now() where id=${doc.supersedes_id} and document_status='Effective' returning id,record_id,revision`)[0];if(old){await sql`update ims_records set status='Closed',updated_at=now() where id=${old.record_id}`;await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'SUPERSEDE_DOCUMENT','controlled_document',${String(old.id)},${JSON.stringify({document_number:doc.document_number,obsolete_revision:old.revision,effective_revision:doc.revision})}::jsonb)`}}
     }
     await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Approved','All configured approval levels completed',${access.profile.id})`
-    await notifyManagers(sql,b.record_id,record.module==='Document & Record Control'?'DOCUMENT_EFFECTIVE':'APPROVAL_COMPLETED',finalMessage,access.profile.id)
+    await notifyManagers(sql,b.record_id,record.module==='Document & Record Control'?'DOCUMENT_EFFECTIVE':'APPROVAL_COMPLETED',finalMessage,access.profile.id);await notifyOwner(sql,b.record_id,record.owner_id,record.module==='Document & Record Control'?'DOCUMENT_EFFECTIVE':'APPROVAL_COMPLETED',finalMessage,access.profile.id)
    }
   }
  }
