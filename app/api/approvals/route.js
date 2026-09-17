@@ -31,13 +31,14 @@ export async function POST(req){
 export async function PATCH(req){
  const access=await requireAccess(ROLES); if(!access.ok) return access.response
  const b=await req.json(); if(!b.record_id||!['Approved','Rejected'].includes(b.decision)) return Response.json({error:'record_id and valid decision are required'},{status:400})
- const sql=db(); const pending=(await sql`select a.id,a.workflow_id,a.level_no,l.required_role,l.required_approvals from approvals a join approval_levels l on l.workflow_id=a.workflow_id and l.level_no=a.level_no where a.record_id=${b.record_id} and a.decision='Pending' order by a.level_no limit 1`)[0]; if(!pending) return Response.json({error:'No pending approval found'},{status:404})
+ const comment=String(b.comment||'').trim(); if(!comment) return Response.json({error:'Keterangan / komentar wajib diisi pada setiap level approval'},{status:400})
+ const sql=db(); const pending=(await sql`select a.id,a.workflow_id,a.level_no,l.required_role,l.required_approvals,l.level_name from approvals a join approval_levels l on l.workflow_id=a.workflow_id and l.level_no=a.level_no where a.record_id=${b.record_id} and a.decision='Pending' order by a.level_no limit 1`)[0]; if(!pending) return Response.json({error:'No pending approval found'},{status:404})
  if(!['Super Admin','IMS Admin'].includes(access.profile.app_role)&&access.profile.app_role!==pending.required_role) return Response.json({error:'Your role is not authorized for this approval level'},{status:403})
- await sql`update approvals set decision=${b.decision},comment=${b.comment||''},approver_id=${access.profile.id},decided_at=now() where id=${pending.id}`
+ await sql`update approvals set decision=${b.decision},comment=${comment},approver_id=${access.profile.id},decided_at=now() where id=${pending.id}`
  const record=(await sql`select record_no,status from ims_records where id=${b.record_id}`)[0]
  if(b.decision==='Rejected'){
   await sql`update ims_records set status='Open',updated_at=now() where id=${b.record_id}`
-  await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Open',${b.comment||'Approval rejected'},${access.profile.id})`
+  await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Open',${`Level ${pending.level_no} rejected: ${comment}`},${access.profile.id})`
  } else {
   const next=(await sql`select level_no,required_role from approval_levels where workflow_id=${pending.workflow_id} and level_no>${pending.level_no} order by level_no limit 1`)[0]
   if(next){
@@ -46,9 +47,9 @@ export async function PATCH(req){
    for(const u of targets) await sql`insert into notifications(user_id,record_id,type,message) values(${u.id},${b.record_id},'APPROVAL_REQUIRED',${`${record.record_no} requires your approval at level ${next.level_no}`})`
   } else {
    await sql`update ims_records set status='Approved',updated_at=now() where id=${b.record_id}`
-   await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Approved',${b.comment||'All approval levels completed'},${access.profile.id})`
+   await sql`insert into workflow_history(record_id,from_status,to_status,note,actor_id) values(${b.record_id},${record.status},'Approved',${`Final approval completed: ${comment}`},${access.profile.id})`
   }
  }
- await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'APPROVAL_DECISION','ims_record',${String(b.record_id)},${JSON.stringify({level:pending.level_no,decision:b.decision,comment:b.comment||''})}::jsonb)`
- return Response.json({ok:true,decision:b.decision})
+ await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'APPROVAL_DECISION','ims_record',${String(b.record_id)},${JSON.stringify({level:pending.level_no,level_name:pending.level_name,decision:b.decision,comment})}::jsonb)`
+ return Response.json({ok:true,decision:b.decision,level:pending.level_no,comment})
 }
