@@ -1,11 +1,12 @@
 import { db } from '@/lib/db'
 import { requireAccess } from '@/lib/auth/access'
-const ROLES=['Super Admin','IMS Admin','Auditor','Function Owner']
+const READ=['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
+const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner']
 async function notifyManagers(sql,recordId,type,message,excludeId){const users=await sql`select id from app_users where active=true and app_role in ('Super Admin','IMS Admin') and id<>${excludeId}`;for(const u of users)await sql`insert into notifications(user_id,record_id,type,message) values(${u.id},${recordId},${type},${message})`}
 async function notifyOwner(sql,recordId,ownerId,type,message,excludeId){if(ownerId&&String(ownerId)!==String(excludeId))await sql`insert into notifications(user_id,record_id,type,message) select id,${recordId},${type},${message} from app_users where id=${ownerId} and active=true`}
 
 export async function GET(req){
- const access=await requireAccess(ROLES); if(!access.ok)return access.response
+ const access=await requireAccess(READ); if(!access.ok)return access.response
  const recordId=new URL(req.url).searchParams.get('record_id'); if(!recordId)return Response.json({error:'record_id is required'},{status:400})
  const sql=db(); const record=(await sql`select r.id,r.record_no,r.title,r.module,r.status,d.document_number,d.document_type,d.revision,d.effective_date,d.retention,d.classification,d.document_status,d.supersedes_id from ims_records r left join controlled_documents d on d.record_id=r.id where r.id=${recordId} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404})
  const approvals=await sql`select a.id,a.level_no,a.decision,a.comment,a.decided_at,u.full_name approver,w.name workflow,l.level_name,l.description,l.required_role,l.required_approvals,(select count(*)::int from approval_decisions d where d.approval_id=a.id and d.decision='Approved') approved_count,(select count(*)::int from approval_decisions d where d.approval_id=a.id and d.decision='Rejected') rejected_count from approvals a left join app_users u on u.id=a.approver_id left join approval_workflows w on w.id=a.workflow_id left join approval_levels l on l.workflow_id=a.workflow_id and l.level_no=a.level_no where a.record_id=${recordId} order by a.level_no,a.created_at`
@@ -14,7 +15,7 @@ export async function GET(req){
 }
 
 export async function POST(req){
- const access=await requireAccess(ROLES); if(!access.ok)return access.response
+ const access=await requireAccess(WRITE); if(!access.ok)return access.response
  const b=await req.json(); if(!b.record_id)return Response.json({error:'record_id is required'},{status:400})
  const sql=db(),record=(await sql`select id,record_no,module,status from ims_records where id=${b.record_id} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404})
  const workflow=(await sql`select id,name from approval_workflows where module=${record.module} and active=true order by id limit 1`)[0]; if(!workflow)return Response.json({error:'No active approval workflow configured for this module'},{status:409})
@@ -30,7 +31,7 @@ export async function POST(req){
 }
 
 export async function PATCH(req){
- const access=await requireAccess(ROLES); if(!access.ok)return access.response
+ const access=await requireAccess(WRITE); if(!access.ok)return access.response
  const b=await req.json(),comment=String(b.comment||'').trim(); if(!b.record_id||!['Approved','Rejected'].includes(b.decision))return Response.json({error:'record_id and valid decision are required'},{status:400}); if(!comment)return Response.json({error:'Keterangan / komentar wajib diisi pada setiap level approval'},{status:400})
  const sql=db(),pending=(await sql`select a.id,a.workflow_id,a.level_no,l.required_role,l.required_approvals,l.level_name from approvals a join approval_levels l on l.workflow_id=a.workflow_id and l.level_no=a.level_no where a.record_id=${b.record_id} and a.decision='Pending' order by a.level_no limit 1`)[0]; if(!pending)return Response.json({error:'No pending approval found'},{status:404})
  if(!['Super Admin','IMS Admin'].includes(access.profile.app_role)&&access.profile.app_role!==pending.required_role)return Response.json({error:'Your role is not authorized for this approval level'},{status:403})
