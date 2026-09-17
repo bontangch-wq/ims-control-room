@@ -7,8 +7,8 @@ export async function GET(req){
  const recordId=new URL(req.url).searchParams.get('record_id'); if(!recordId)return Response.json({error:'record_id is required'},{status:400})
  const sql=db(); const record=(await sql`select r.id,r.record_no,r.title,r.module,r.status,d.document_number,d.document_type,d.revision,d.effective_date,d.retention,d.classification,d.document_status,d.supersedes_id from ims_records r left join controlled_documents d on d.record_id=r.id where r.id=${recordId} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404})
  const approvals=await sql`select a.id,a.level_no,a.decision,a.comment,a.decided_at,u.full_name approver,w.name workflow,l.level_name,l.description,l.required_role,l.required_approvals,(select count(*)::int from approval_decisions d where d.approval_id=a.id and d.decision='Approved') approved_count,(select count(*)::int from approval_decisions d where d.approval_id=a.id and d.decision='Rejected') rejected_count from approvals a left join app_users u on u.id=a.approver_id left join approval_workflows w on w.id=a.workflow_id left join approval_levels l on l.workflow_id=a.workflow_id and l.level_no=a.level_no where a.record_id=${recordId} order by a.level_no,a.created_at`
- for(const a of approvals)a.decisions=await sql`select d.id,d.decision,d.comment,d.decided_at,u.full_name approver,u.app_role from approval_decisions d join app_users u on u.id=d.approver_id where d.approval_id=${a.id} order by d.decided_at`
- return Response.json({record,approvals})
+ for(const a of approvals)a.decisions=await sql`select d.id,d.approver_id,d.decision,d.comment,d.decided_at,u.full_name approver,u.app_role from approval_decisions d join app_users u on u.id=d.approver_id where d.approval_id=${a.id} order by d.decided_at`
+ return Response.json({record,approvals,current_user_id:access.profile.id})
 }
 
 export async function POST(req){
