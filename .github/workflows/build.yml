@@ -1,0 +1,20 @@
+name: Build verification
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [security-hardening, main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/ims_control_room
+      NEON_AUTH_BASE_URL: https://example.invalid/auth
+      NEON_AUTH_COOKIE_SECRET: ci-only-placeholder-secret-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build

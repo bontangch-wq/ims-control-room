@@ -1,3 +1,25 @@
 import { db } from '@/lib/db'
-export async function GET(){ const sql=db(); return Response.json(await sql`select id,email,full_name,function_name,app_role,active,auth_user_id from app_users order by full_name`) }
-export async function PATCH(req){ const b=await req.json(); const sql=db(); const r=await sql`update app_users set app_role=${b.app_role},active=${b.active} where id=${b.id} returning id,email,full_name,function_name,app_role,active`; return Response.json(r[0]) }
+import { requireAccess } from '@/lib/auth/access'
+
+const ROLES=['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
+
+export async function GET(){
+ const access=await requireAccess(['Super Admin','IMS Admin']); if(!access.ok) return access.response
+ const sql=db(); return Response.json(await sql`select id,email,full_name,function_name,app_role,active,auth_user_id from app_users order by full_name`)
+}
+export async function PATCH(req){
+ const access=await requireAccess(['Super Admin','IMS Admin']); if(!access.ok) return access.response
+ const b=await req.json(); if(!b.id) return Response.json({error:'id is required'},{status:400})
+ const sql=db(); const target=(await sql`select id,app_role,function_name,active from app_users where id=${b.id} limit 1`)[0]
+ if(!target) return Response.json({error:'user not found'},{status:404})
+ const nextRole=b.app_role===undefined?target.app_role:b.app_role
+ if(!ROLES.includes(nextRole)) return Response.json({error:'invalid role'},{status:400})
+ const nextActive=b.active===undefined?target.active:b.active
+ if(typeof nextActive!=='boolean') return Response.json({error:'active must be boolean'},{status:400})
+ const nextFunction=b.function_name===undefined?target.function_name:(String(b.function_name??'').trim().slice(0,120)||null)
+ if(access.profile.app_role!=='Super Admin' && (target.app_role==='Super Admin'||nextRole==='Super Admin')) return Response.json({error:'Only Super Admin can manage Super Admin access'},{status:403})
+ if(String(access.profile.id)===String(b.id)&&nextActive===false) return Response.json({error:'You cannot disable your own account'},{status:400})
+ const r=(await sql`update app_users set app_role=${nextRole},active=${nextActive},function_name=${nextFunction} where id=${b.id} returning id,email,full_name,function_name,app_role,active`)[0]
+ await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'UPDATE_ACCESS','app_user',${String(b.id)},${JSON.stringify({app_role:nextRole,previous_app_role:target.app_role,active:nextActive,previous_active:target.active,function_name:nextFunction,previous_function_name:target.function_name})}::jsonb)`
+ return Response.json(r)
+}
