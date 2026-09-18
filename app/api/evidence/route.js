@@ -2,6 +2,7 @@ import { db } from '@/lib/db'
 import { requireAccess } from '@/lib/auth/access'
 const READ=['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
 const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner']
+const ALLOWED_MIME=new Set(['application/pdf','image/jpeg','image/png','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
 
 export async function GET(req){
  const access=await requireAccess(READ); if(!access.ok)return access.response
@@ -12,9 +13,9 @@ export async function GET(req){
 
 export async function POST(req){
  const access=await requireAccess(WRITE); if(!access.ok)return access.response
- const b=await req.json(); if(!b.record_id||!b.file_name||!b.storage_path)return Response.json({error:'record_id, file_name and storage_path are required'},{status:400})
+ const b=await req.json(); if(!b.record_id||!b.file_name||!b.storage_path)return Response.json({error:'record_id, file_name and storage_path are required'},{status:400}); const size=Number(b.file_size||0),mime=String(b.mime_type||''); if(size<=0||size>25*1024*1024)return Response.json({error:'Invalid file size or file exceeds 25 MB'},{status:400}); if(!ALLOWED_MIME.has(mime))return Response.json({error:'File type is not allowed'},{status:400}); const expectedPrefix=`records/${b.record_id}/`; if(!String(b.storage_path).startsWith(expectedPrefix)||String(b.storage_path).includes('..'))return Response.json({error:'Invalid controlled storage path'},{status:400})
  const sql=db(); const record=(await sql`select id,record_no,module from ims_records where id=${b.record_id} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404})
- const rows=await sql`insert into evidence(record_id,file_name,storage_path,mime_type,file_size,uploaded_by) values(${record.id},${b.file_name},${b.storage_path},${b.mime_type||null},${b.file_size||null},${access.profile.id}) returning id,record_id,file_name,mime_type,file_size,created_at`
+ const rows=await sql`insert into evidence(record_id,file_name,storage_path,mime_type,file_size,uploaded_by) values(${record.id},${b.file_name},${b.storage_path},${mime},${size},${access.profile.id}) returning id,record_id,file_name,mime_type,file_size,created_at`
  await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'REGISTER_EVIDENCE','evidence',${String(rows[0].id)},${JSON.stringify({record_no:record.record_no,module:record.module,file_name:b.file_name})}::jsonb)`
  return Response.json(rows[0],{status:201})
 }
