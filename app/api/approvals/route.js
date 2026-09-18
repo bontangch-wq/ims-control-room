@@ -17,7 +17,7 @@ export async function GET(req){
 export async function POST(req){
  const access=await requireAccess(WRITE); if(!access.ok)return access.response
  const b=await req.json(); if(!b.record_id)return Response.json({error:'record_id is required'},{status:400})
- const sql=db(),record=(await sql`select id,record_no,module,status,owner_id from ims_records where id=${b.record_id} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404})
+ const sql=db(),record=(await sql`select id,record_no,module,status,owner_id from ims_records where id=${b.record_id} limit 1`)[0]; if(!record)return Response.json({error:'record not found'},{status:404}); if(record.module!=='Document & Record Control')return Response.json({error:'Approval workflow is only available for Document & Record Control'},{status:409})
  const workflow=(await sql`select id,name from approval_workflows where module=${record.module} and active=true order by id limit 1`)[0]; if(!workflow)return Response.json({error:'No active approval workflow configured for this module'},{status:409})
  const first=(await sql`select level_no,required_role,required_approvals from approval_levels where workflow_id=${workflow.id} order by level_no limit 1`)[0]; if(!first)return Response.json({error:'Approval workflow has no levels'},{status:409})
  if((await sql`select id from approvals where record_id=${record.id} and decision='Pending' limit 1`).length)return Response.json({error:'Approval workflow already has a pending level'},{status:409})
