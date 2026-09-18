@@ -25,7 +25,8 @@ const NAV_GROUPS={
  'Management Review':'Performance','Performance & Analytics':'Performance','Improvement & Lessons Learned':'Performance'
 }
 const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner'],SPECIAL=['Overview','Document & Record Control','Distribution & Acknowledgement']
-const emptyForm=module=>({title:'',module,severity:'Medium',due_date:'',description:'',owner_id:'',document_number:'',document_type:'',revision:'00',classification:'Internal',retention:'',effective_date:''})\nconst MODULE_GUIDANCE={
+const emptyForm=module=>({title:'',module,severity:'Medium',due_date:'',description:'',owner_id:'',document_number:'',document_type:'',revision:'00',classification:'Internal',retention:'',effective_date:''})
+const MODULE_GUIDANCE={
  'Risk & Opportunity':{severity:'Risk Rating / Priority',description:'Hazard / opportunity, cause, existing controls, consequence, likelihood, residual risk, treatment plan, monitoring evidence.'},
  'Legal & Compliance':{severity:'Compliance Priority',description:'Regulation / requirement, applicable clause, compliance obligation, evaluation result, evidence, gap and corrective action.'},
  'Incident, NCR & CAPA':{severity:'Actual / Potential Severity',description:'Incident/NCR description, immediate action, root cause, corrective action, preventive action, effectiveness verification.'},
