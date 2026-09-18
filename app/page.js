@@ -32,7 +32,16 @@ const MODULE_GUIDANCE={
  'Incident, NCR & CAPA':{severity:'Actual / Potential Severity',description:'Incident/NCR description, immediate action, root cause, corrective action, preventive action, effectiveness verification.'},
  'Audit & Assessment':{severity:'Finding Classification',description:'Audit scope / criteria, finding, objective evidence, clause/reference, root cause, correction and corrective action.'},
  'Inspection & Monitoring':{severity:'Finding Priority',description:'Inspection area / parameter, requirement or standard, observation/result, deviation, action required and verification.'},
- 'Objectives & KPI':{severity:'Performance Priority',description:'Objective/KPI, baseline, target, unit, measurement frequency, actual performance, variance and action plan.'}
+ 'Objectives & KPI':{severity:'Performance Priority',description:'Objective/KPI, baseline, target, unit, measurement frequency, actual performance, variance and action plan.'},
+ 'Organization & Context':{severity:'Strategic Priority',description:'Internal/external issue, interested party, needs and expectations, impact on IMS, owner and review action.'},
+ 'Leadership & Policy':{severity:'Leadership Priority',description:'Policy/commitment, leadership action, responsibility/authority, communication, implementation evidence and review.'},
+ 'Competency & Awareness':{severity:'Competency Gap Priority',description:'Required competency, current competency, gap, training/action, due date, effectiveness evaluation and evidence.'},
+ 'Communication & Consultation':{severity:'Communication Priority',description:'Stakeholder, topic, method/channel, frequency, responsible person, consultation result and evidence.'},
+ 'Operational Control':{severity:'Operational Risk Priority',description:'Activity/process, operational criteria, control/procedure, responsible function, monitoring requirement and evidence.'},
+ 'Contractor & Supplier':{severity:'Supplier Risk Priority',description:'Contractor/supplier, scope, qualification criteria, HSE/QHSE requirement, performance result, gap and follow-up.'},
+ 'Emergency Preparedness':{severity:'Emergency Risk Priority',description:'Emergency scenario, response plan, resources, roles, drill/test result, gap, corrective action and readiness evidence.'},
+ 'Management Review':{severity:'Management Attention',description:'Review input, performance/trend, audit/compliance status, resource issue, decision, action owner and due date.'},
+ 'Improvement & Lessons Learned':{severity:'Improvement Priority',description:'Improvement opportunity/lesson, source/event, analysis, proposed action, owner, benefit, implementation and verification.'}
 }
 
 export default function Home(){
