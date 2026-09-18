@@ -7,6 +7,19 @@ export async function GET(){
  const access=await requireAccess(['Super Admin','IMS Admin']); if(!access.ok) return access.response
  const sql=db(); return Response.json(await sql`select id,email,full_name,function_name,app_role,active,auth_user_id from app_users order by full_name`)
 }
+export async function POST(req){
+ const access=await requireAccess(['Super Admin','IMS Admin']); if(!access.ok) return access.response
+ const b=await req.json(),email=String(b.email||'').trim().toLowerCase(),fullName=String(b.full_name||'').trim(),role=b.app_role||'Viewer',functionName=String(b.function_name||'').trim().slice(0,120)||null
+ if(!email||!fullName) return Response.json({error:'Nama dan email wajib diisi'},{status:400})
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Response.json({error:'Format email tidak valid'},{status:400})
+ if(!ROLES.includes(role)) return Response.json({error:'invalid role'},{status:400})
+ if(role==='Super Admin'&&access.profile.app_role!=='Super Admin') return Response.json({error:'Only Super Admin can provision Super Admin access'},{status:403})
+ const sql=db(); if((await sql`select id from app_users where lower(email)=${email} limit 1`).length) return Response.json({error:'Email sudah terdaftar'},{status:409})
+ const r=(await sql`insert into app_users(email,full_name,function_name,app_role,active,auth_user_id) values(${email},${fullName},${functionName},${role},true,null) returning id,email,full_name,function_name,app_role,active,auth_user_id`)[0]
+ await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'PROVISION_USER','app_user',${String(r.id)},${JSON.stringify({email,full_name:fullName,function_name:functionName,app_role:role})}::jsonb)`
+ return Response.json(r,{status:201})
+}
+
 export async function PATCH(req){
  const access=await requireAccess(['Super Admin','IMS Admin']); if(!access.ok) return access.response
  const b=await req.json(); if(!b.id) return Response.json({error:'id is required'},{status:400})
