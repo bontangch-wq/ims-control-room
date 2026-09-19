@@ -43,7 +43,16 @@ const MODULE_GUIDANCE={
  'Contractor & Supplier':{severity:'Supplier Risk Priority',description:'Contractor/supplier, scope, qualification criteria, HSE/QHSE requirement, performance result, gap and follow-up.'},
  'Emergency Preparedness':{severity:'Emergency Risk Priority',description:'Emergency scenario, response plan, resources, roles, drill/test result, gap, corrective action and readiness evidence.'},
  'Management Review':{severity:'Management Attention',description:'Review input, performance/trend, audit/compliance status, resource issue, decision, action owner and due date.'},
- 'Improvement & Lessons Learned':{severity:'Improvement Priority',description:'Improvement opportunity/lesson, source/event, analysis, proposed action, owner, benefit, implementation and verification.'}
+ 'Improvement & Lessons Learned':{severity:'Improvement Priority',description:'Improvement opportunity/lesson, source/event, analysis, proposed action, owner, benefit, implementation and verification.'},
+ 'Business Process':{severity:'Process Criticality',description:'Process purpose, scope, inputs, outputs, process owner, interaction with other processes, resources, controls, KPI and documented information.'},
+ 'Standar dan Persyaratan':{severity:'Requirement Priority',description:'Standard/framework, clause or element, requirement summary, applicability, responsible function, mapped process/control, evidence and compliance status.'},
+ 'Quality Management':{severity:'Quality Priority',description:'Quality requirement, process/control, customer or product/service criteria, monitoring result, evidence, nonconformity and improvement action.'},
+ 'Environmental Management':{severity:'Environmental Priority',description:'Environmental aspect/impact, compliance obligation, operational control, monitoring parameter, performance result, evidence and improvement action.'},
+ 'OH&S Management':{severity:'OH&S Priority',description:'Hazard and OH&S requirement, operational control, worker participation, monitoring, incident linkage, evidence and corrective action.'},
+ 'SMK3':{severity:'SMK3 Priority',description:'SMK3 criterion, implementation requirement, responsible function, control/program, evidence, evaluation result, gap and follow-up.'},
+ 'SMKP Minerba':{severity:'SMKP Priority',description:'SMKP element/sub-element, requirement, responsible function, implementation/control, evidence, assessment result, finding and corrective action.'},
+ 'Laboratory Management':{severity:'Laboratory Priority',description:'ISO/IEC 17025 activity or requirement, competence/resource/method control, technical record, validity monitoring, evidence, nonconforming work and action.'},
+ 'Performance & Analytics':{severity:'Performance Priority',description:'Performance indicator, source data, target, actual result, trend, variance, analysis, management attention and improvement action.'}
 }
 
 export default function Home(){
