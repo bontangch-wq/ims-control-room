@@ -5,7 +5,7 @@ const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner']
 const isActive=r=>!['Approved','Closed'].includes(r.status)
 const localDateKey=()=>{const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`}
 const isOverdue=(r,today)=>!!r.due_date&&isActive(r)&&String(r.due_date).slice(0,10)<today
-const FLOW=['Organization & Context','Leadership & Policy','Standar dan Persyaratan','Business Process','Risk & Opportunity','Document & Record Control','Operational Control','Objectives & KPI','Audit & Assessment','Incident, NCR & CAPA','Management Review','Improvement & Lessons Learned']
+const FLOW=['Organization & Context','Leadership & Policy','Business Process','Standar dan Persyaratan','Legal & Compliance','Risk & Opportunity','Document & Record Control','Competency & Awareness','Communication & Consultation','Contractor & Supplier','Operational Control','Emergency Preparedness','Objectives & KPI','Inspection & Monitoring','Incident, NCR & CAPA','Audit & Assessment','Management Review','Performance & Analytics','Improvement & Lessons Learned']
 const flowPos=m=>FLOW.indexOf(m)
 
 export default function ModuleWorkspace({module,records=[],onOpen,onNew,canWrite}){
