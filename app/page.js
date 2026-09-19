@@ -26,6 +26,7 @@ const NAV_GROUPS={
  'Contractor & Supplier':'Assurance','Incident, NCR & CAPA':'Assurance','Audit & Assessment':'Assurance','Inspection & Monitoring':'Assurance','Emergency Preparedness':'Assurance',
  'Management Review':'Performance','Performance & Analytics':'Performance','Improvement & Lessons Learned':'Performance'
 }
+const TRACE_RELATIONS=[['implements','Implements'],['satisfies','Satisfies Requirement'],['controls','Controls Risk'],['evidences','Provides Evidence'],['monitors','Monitors'],['identifies','Identifies Finding'],['results_in','Results In'],['corrects','Corrects'],['verifies','Verifies Effectiveness'],['reviews','Management Reviews'],['improves','Drives Improvement'],['relates_to','Related To']]
 const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner'],SPECIAL=['Overview','Document & Record Control','Distribution & Acknowledgement','Risk & Opportunity']
 const emptyForm=module=>({title:'',module,severity:'Medium',due_date:'',description:'',owner_id:'',document_number:'',document_type:'',revision:'00',classification:'Internal',retention:''})
 const MODULE_GUIDANCE={
