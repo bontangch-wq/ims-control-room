@@ -9,6 +9,7 @@ import NotificationCenter from './components/NotificationCenter'
 import ManagementDashboard from './components/ManagementDashboard'
 import RiskOpportunityWorkspace from './components/RiskOpportunityWorkspace'
 import LegalComplianceWorkspace from './components/LegalComplianceWorkspace'
+import {TRACE_CHAIN,TRACE_EXPECTATIONS,TRACE_RELATIONS,TRACE_TARGETS} from '@/lib/traceability'
 const NAV_SECTIONS=[
  {label:'Overview',items:['Overview']},
  {label:'Foundation & Governance',items:['Business Process','Standar dan Persyaratan','Organization & Context','Leadership & Policy','Risk & Opportunity','Legal & Compliance','Objectives & KPI']},
@@ -26,19 +27,6 @@ const NAV_GROUPS={
  'Contractor & Supplier':'Assurance','Incident, NCR & CAPA':'Assurance','Audit & Assessment':'Assurance','Inspection & Monitoring':'Assurance','Emergency Preparedness':'Assurance',
  'Management Review':'Performance','Performance & Analytics':'Performance','Improvement & Lessons Learned':'Performance'
 }
-const TRACE_CHAIN=['Requirement','Process','Risk','Control','Evidence','Monitoring','Audit / Finding','CAPA','Effectiveness Verification','Management Review','Improvement']
-const TRACE_EXPECTATIONS={
- 'Standar dan Persyaratan':['implements','satisfies'],
- 'Risk & Opportunity':['controls','monitors'],
- 'Document & Record Control':['evidences','implements'],
- 'Inspection & Monitoring':['monitors','identifies'],
- 'Audit & Assessment':['identifies','results_in'],
- 'Incident, NCR & CAPA':['corrects','verifies'],
- 'Management Review':['reviews','improves'],
- 'Improvement & Lessons Learned':['improves']
-}
-const TRACE_RELATIONS=[['implements','Implements'],['satisfies','Satisfies Requirement'],['controls','Controls Risk'],['evidences','Provides Evidence'],['monitors','Monitors'],['identifies','Identifies Finding'],['results_in','Results In'],['corrects','Corrects'],['verifies','Verifies Effectiveness'],['reviews','Management Reviews'],['improves','Drives Improvement'],['relates_to','Related To']]
-const TRACE_TARGETS={implements:['Business Process','Document & Record Control','Operational Control'],satisfies:['Standar dan Persyaratan','Legal & Compliance'],controls:['Operational Control','Document & Record Control'],evidences:['Document & Record Control','Inspection & Monitoring'],monitors:['Inspection & Monitoring','Objectives & KPI','Performance & Analytics'],identifies:['Audit & Assessment','Inspection & Monitoring'],results_in:['Incident, NCR & CAPA'],corrects:['Incident, NCR & CAPA','Operational Control'],verifies:['Inspection & Monitoring','Audit & Assessment'],reviews:['Management Review'],improves:['Improvement & Lessons Learned']}
 const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner'],SPECIAL=['Overview','Document & Record Control','Distribution & Acknowledgement','Risk & Opportunity']
 const emptyForm=module=>({title:'',module,severity:'Medium',due_date:'',description:'',owner_id:'',document_number:'',document_type:'',revision:'00',classification:'Internal',retention:''})
 const MODULE_GUIDANCE={
