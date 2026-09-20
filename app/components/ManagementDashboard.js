@@ -11,9 +11,9 @@ const standards=[
  ['Compliance','Legal & Other','Legal & Compliance','⚖']
 ]
 const scoreFor=(records,module,base)=>{const xs=records.filter(r=>r.module===module);if(!xs.length)return base;const good=xs.filter(r=>['Approved','Closed','Effective','Completed'].includes(r.status)).length;return Math.max(65,Math.min(99,Math.round(base*.55+pct(good,xs.length)*.45)))}
-export default function ManagementDashboard({records=[],onOpen,onNavigate}){
+export default function ManagementDashboard({records=[],onOpen,onNavigate,refreshKey=0}){
  const[data,setData]=useState(null),[failed,setFailed]=useState(false)
- useEffect(()=>{fetch('/api/dashboard').then(r=>{if(!r.ok)throw new Error('dashboard');return r.json()}).then(setData).catch(()=>setFailed(true))},[])
+ useEffect(()=>{setFailed(false);fetch('/api/dashboard').then(r=>{if(!r.ok)throw new Error('dashboard');return r.json()}).then(setData).catch(()=>setFailed(true))},[refreshKey])
  if(failed)return <section className="imsboard"><div className="error">Indikator dashboard belum dapat dimuat. Data register tetap dapat digunakan.</div></section>
  if(!data)return <section className="imsboard"><div className="dashloading">Memuat indikator IMS…</div></section>
  const d=data.documents||{},a=data.approvals||{},e=data.executive||{}
