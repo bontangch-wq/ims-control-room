@@ -9,6 +9,11 @@ const FLOW=['Organization & Context','Leadership & Policy','Business Process','S
 const flowPos=m=>FLOW.indexOf(m)
 const LIFECYCLE={
  'Incident, NCR & CAPA':'Identifikasi → Immediate Action → Root Cause → Corrective Action → Effectiveness Verification → Closure',
+ 'Risk & Opportunity':'Identify → Assess → Treatment/Control → Owner & Due Date → Monitor → Residual Risk → Close',
+ 'Operational Control':'Criteria → Control → Implementation → Evidence → Monitoring → Deviation/CAPA → Verification',
+ 'Competency & Awareness':'Need → Competency Criteria → Training/Action → Assessment → Evidence → Effectiveness Review',
+ 'Contractor & Supplier':'Prequalification → Requirement → Evaluation → Control → Performance Monitoring → Action → Review',
+ 'Emergency Preparedness':'Scenario → Preparedness → Drill/Response → Evaluation → Corrective Action → Verification',
  'Audit & Assessment':'Planning → Execution → Finding → CAPA → Verification → Closure',
  'Inspection & Monitoring':'Plan → Inspect/Measure → Deviation → Action → Verification → Close',
  'Management Review':'Input → Analysis → Decision → Action → Follow-up → Closure',
