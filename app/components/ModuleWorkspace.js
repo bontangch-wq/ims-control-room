@@ -14,11 +14,11 @@ const LIFECYCLE={
  'Competency & Awareness':'Need → Competency Criteria → Training/Action → Assessment → Evidence → Effectiveness Review',
  'Contractor & Supplier':'Prequalification → Requirement → Evaluation → Control → Performance Monitoring → Action → Review',
  'Emergency Preparedness':'Scenario → Preparedness → Drill/Response → Evaluation → Corrective Action → Verification',
- 'Audit & Assessment':'Planning → Execution → Finding → CAPA → Verification → Closure',
- 'Inspection & Monitoring':'Plan → Inspect/Measure → Deviation → Action → Verification → Close',
- 'Management Review':'Input → Analysis → Decision → Action → Follow-up → Closure',
+ 'Audit & Assessment':'Program/Plan → Criteria & Scope → Execution → Evidence → Finding → Root Cause/CAPA → Effectiveness Verification → Closure',
+ 'Inspection & Monitoring':'Plan → Criteria/Parameter → Inspect/Measure → Result & Evidence → Deviation → Action/CAPA → Verification → Close',
+ 'Management Review':'Input → Trend & Performance Analysis → Compliance/Audit/CAPA Review → Decision → Assigned Action → Due Date → Follow-up → Closure',
  'Objectives & KPI':'Objective → Indicator → Target → Monitoring → Analysis → Action',
- 'Improvement & Lessons Learned':'Source → Lesson/Opportunity → Action → Implementation → Verification → Standardization',
+ 'Improvement & Lessons Learned':'Source → Lesson/Opportunity → Prioritize → Action → Implementation → Benefit/Effectiveness Verification → Standardization & Sharing',
  'Document & Record Control':'Draft → Review → Approval → Effective → Review/Revision → Obsolete/Archive',
  'Legal & Compliance':'Requirement → Applicability → Evaluation → Gap/Action → Evidence → Review'
 }
