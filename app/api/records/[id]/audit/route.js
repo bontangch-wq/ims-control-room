@@ -1,8 +1,9 @@
 import { db } from '@/lib/db'
 import { requireAccess, ACCESS } from '@/lib/auth/access'
+import {isUuid} from '@/lib/validation'
 export async function GET(req,{params}){
  const access=await requireAccess(ACCESS.READ);if(!access.ok)return access.response
- const {id}=await params;const sql=db()
+ const {id}=await params;if(!isUuid(id))return Response.json({error:'valid record id is required'},{status:400});const sql=db()
  const record=(await sql`select id,record_no,title from ims_records where id=${id} limit 1`)[0]
  if(!record)return Response.json({error:'record not found'},{status:404})
  const audit=await sql`select a.id,a.action,a.entity_type,a.entity_id,a.detail,a.created_at,u.full_name actor,u.app_role from audit_log a left join app_users u on u.id=a.actor_id where (a.entity_type='ims_record' and a.entity_id=${String(id)}) or (a.entity_type='controlled_document' and a.entity_id in (select d.id::text from controlled_documents d where d.record_id=${id})) or (a.entity_type='evidence' and a.entity_id in (select e.id::text from evidence e where e.record_id=${id})) or (a.entity_type='approval' and a.entity_id in (select ap.id::text from approvals ap where ap.record_id=${id})) or (a.action in ('DISTRIBUTE_DOCUMENT','ACKNOWLEDGE_DOCUMENT') and a.entity_type='ims_record' and a.entity_id=${String(id)}) order by a.created_at desc limit 200`
