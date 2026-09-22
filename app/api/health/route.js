@@ -1,10 +1,8 @@
-import { requireAccess } from '@/lib/auth/access'
+import { requireAccess, ACCESS } from '@/lib/auth/access'
 import { db } from '@/lib/db'
 
-const HEALTH_ROLES = ['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
-
 export async function GET() {
-  const access = await requireAccess(HEALTH_ROLES)
+  const access = await requireAccess(ACCESS.READ)
   if (!access.ok) return access.response
 
   try {
