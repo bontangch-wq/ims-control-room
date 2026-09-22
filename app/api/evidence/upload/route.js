@@ -1,11 +1,10 @@
 import {db} from '@/lib/db'
-import {requireAccess} from '@/lib/auth/access'
+import {requireAccess,ACCESS} from '@/lib/auth/access'
 import {presignUpload} from '@/lib/storage'
-const WRITE=['Super Admin','IMS Admin','Auditor','Function Owner']
 const MAX_SIZE=25*1024*1024
 const SAFE_TYPES=['application/pdf','image/jpeg','image/png','application/vnd.openxmlformats-officedocument.wordprocessingml.document','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
 export async function POST(req){
- const access=await requireAccess(WRITE);if(!access.ok)return access.response
+ const access=await requireAccess(ACCESS.WRITE);if(!access.ok)return access.response
  const b=await req.json();if(!b.record_id||!b.file_name)return Response.json({error:'record_id and file_name are required'},{status:400})
  const size=Number(b.file_size||0);if(!Number.isFinite(size)||size<=0||size>MAX_SIZE)return Response.json({error:'Invalid file size or file exceeds 25 MB'},{status:413})
  if(!b.mime_type||!SAFE_TYPES.includes(b.mime_type))return Response.json({error:'File type is not allowed'},{status:415})
