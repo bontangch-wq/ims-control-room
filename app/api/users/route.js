@@ -30,8 +30,10 @@ export async function PATCH(req){
  const nextActive=b.active===undefined?target.active:b.active
  if(typeof nextActive!=='boolean') return Response.json({error:'active must be boolean'},{status:400})
  const nextFunction=b.function_name===undefined?target.function_name:(String(b.function_name??'').trim().slice(0,120)||null)
+ if(String(access.profile.id)===String(b.id)&&nextRole!==target.app_role) return Response.json({error:'You cannot change your own role'},{status:400})
  if(access.profile.app_role!=='Super Admin' && (target.app_role==='Super Admin'||nextRole==='Super Admin')) return Response.json({error:'Only Super Admin can manage Super Admin access'},{status:403})
  if(String(access.profile.id)===String(b.id)&&nextActive===false) return Response.json({error:'You cannot disable your own account'},{status:400})
+ if(target.app_role==='Super Admin'&&(nextRole!=='Super Admin'||nextActive===false)){const admins=(await sql`select count(*)::int n from app_users where app_role='Super Admin' and active=true`)[0]?.n||0;if(admins<=1)return Response.json({error:'At least one active Super Admin must remain'},{status:409})}
  const r=(await sql`update app_users set app_role=${nextRole},active=${nextActive},function_name=${nextFunction} where id=${b.id} returning id,email,full_name,function_name,app_role,active`)[0]
  await sql`insert into audit_log(actor_id,action,entity_type,entity_id,detail) values(${access.profile.id},'UPDATE_ACCESS','app_user',${String(b.id)},${JSON.stringify({app_role:nextRole,previous_app_role:target.app_role,active:nextActive,previous_active:target.active,function_name:nextFunction,previous_function_name:target.function_name})}::jsonb)`
  return Response.json(r)
