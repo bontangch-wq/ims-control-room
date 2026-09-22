@@ -1,9 +1,10 @@
 import { db } from '@/lib/db'
 import { requireAccess, ACCESS, hasAccess } from '@/lib/auth/access'
+import {isPositiveInt,isUuid} from '@/lib/validation'
 import {presignDownload} from '@/lib/storage'
 export async function GET(req,{params}){
  const access=await requireAccess(ACCESS.READ);if(!access.ok)return access.response
- const {id}=await params;const sql=db()
+ const {id}=await params;if(!isPositiveInt(id))return Response.json({error:'valid evidence id is required'},{status:400});const sql=db()
  const rows=await sql`select e.id,e.file_name,e.mime_type,e.file_size,e.storage_path,coalesce(p.can_download,false) explicit_access from evidence e left join evidence_permissions p on p.evidence_id=e.id and p.user_id=${access.profile.id} where e.id=${id} limit 1`
  if(!rows.length)return Response.json({error:'evidence not found'},{status:404})
  const item=rows[0],admin=hasAccess(access.profile,ACCESS.ADMIN)
