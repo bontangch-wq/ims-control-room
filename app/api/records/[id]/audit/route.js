@@ -1,8 +1,7 @@
 import { db } from '@/lib/db'
-import { requireAccess } from '@/lib/auth/access'
-const READ=['Super Admin','IMS Admin','Auditor','Function Owner','Viewer']
+import { requireAccess, ACCESS } from '@/lib/auth/access'
 export async function GET(req,{params}){
- const access=await requireAccess(READ);if(!access.ok)return access.response
+ const access=await requireAccess(ACCESS.READ);if(!access.ok)return access.response
  const {id}=await params;const sql=db()
  const record=(await sql`select id,record_no,title from ims_records where id=${id} limit 1`)[0]
  if(!record)return Response.json({error:'record not found'},{status:404})
