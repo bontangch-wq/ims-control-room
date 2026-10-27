@@ -4,9 +4,17 @@ on:
     branches: [main]
   push:
     branches: [security-hardening, main]
+permissions:
+  contents: read
+
+concurrency:
+  group: ims-build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/ims_control_room
       NEON_AUTH_BASE_URL: https://example.invalid/auth
